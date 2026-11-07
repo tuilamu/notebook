@@ -1,0 +1,1020 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Notebook · Việc & Thói quen</title>
+<style>
+:root{
+  --bg:#f6f7fb;--panel:#fff;--panel2:#f0f2f8;--text:#1c2233;--muted:#6b7490;--border:#e2e5f0;
+  --accent:#5b6cff;--accent-soft:#e8ebff;--done:#22b573;--frozen:#3aa6ff;--fail:#ef5b5b;--warn:#ff8a3d;
+  --shadow:0 4px 20px rgba(30,40,90,.08);--radius:14px;
+}
+:root[data-theme="dark"]{
+  --bg:#0f1220;--panel:#171b2e;--panel2:#1f2440;--text:#e9ecf8;--muted:#8d95b5;--border:#2a3052;
+  --accent:#7c89ff;--accent-soft:#252b55;--shadow:0 4px 20px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer;border:1px solid var(--border);background:var(--panel);border-radius:10px;padding:8px 12px;min-height:38px}
+button:hover{background:var(--panel2)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{filter:brightness(1.08)}
+button.danger{color:var(--fail)}
+button.ghost{border-color:transparent;background:transparent}
+button.ghost:hover{background:var(--panel2)}
+button.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+input[type=text],input[type=search],input[type=date],input[type=number],textarea,select{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:9px 12px;min-height:38px;width:100%;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+
+#app{display:grid;grid-template-columns:290px 1fr;height:100%}
+#sidebar{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0;z-index:30}
+.sb-head{padding:16px 16px 8px;font-weight:700;font-size:18px;display:flex;align-items:center;gap:8px}
+#tree{flex:1;overflow:auto;padding:4px 8px}
+.sb-foot{padding:10px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sb-foot .wide{grid-column:1/-1}
+.tnode{display:flex;align-items:center;gap:4px;padding:6px 8px;border-radius:8px;cursor:pointer;user-select:none}
+.tnode:hover{background:var(--panel2)}
+.tnode.sel{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.tnode .chev{width:20px;text-align:center;color:var(--muted);flex:none}
+.tnode .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#overlay{display:none}
+
+main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.topbar{display:flex;gap:8px;align-items:center;padding:12px 16px 8px}
+.topbar #btnMenu{display:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:0 16px 10px}
+.chip{display:inline-flex;gap:6px;align-items:center;padding:6px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--border);font-weight:600;font-size:14px}
+.chip.btn{cursor:pointer}
+.chip.btn.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.spacer{flex:1}
+#content{flex:1;overflow:auto;padding:0 16px 90px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px}
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:6px 0 10px;color:var(--muted)}
+.crumbs button{padding:4px 8px;min-height:30px;border:none;background:transparent;color:var(--accent);font-weight:600}
+.crumbs button:hover{background:var(--accent-soft)}
+.crumbs .cur{font-weight:700;color:var(--text)}
+h2{margin:0 0 8px;font-size:20px}
+.bar{height:10px;background:var(--panel2);border-radius:999px;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--done));border-radius:999px;transition:width .3s}
+.bar-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-top:6px}
+
+.list{padding:6px}
+.row{display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:10px;position:relative}
+.row:hover{background:var(--panel2)}
+.row .chev{width:22px;text-align:center;color:var(--muted);cursor:pointer;flex:none;user-select:none}
+.row .ico{flex:none}
+.row .title{flex:1;min-width:0;overflow-wrap:anywhere;cursor:pointer}
+.row.task .title{cursor:default}
+.row.isdone .title{text-decoration:line-through;color:var(--muted)}
+.row input[type=checkbox]{width:20px;height:20px;accent-color:var(--done);flex:none;cursor:pointer}
+.badge{font-size:12px;color:var(--muted);background:var(--panel2);padding:2px 8px;border-radius:999px;white-space:nowrap}
+.badge.daily{color:var(--accent);background:var(--accent-soft)}
+.row .more{padding:2px 8px;min-height:30px;border:none;background:transparent;color:var(--muted);font-size:18px}
+.row.dragging{opacity:.4}
+.row.drop-before::before,.row.drop-after::after{content:"";position:absolute;left:8px;right:8px;height:3px;background:var(--accent);border-radius:3px}
+.row.drop-before::before{top:-2px}.row.drop-after::after{bottom:-2px}
+.row.drop-into{outline:2px dashed var(--accent);outline-offset:-2px}
+.row.flash{animation:flash 1.4s}
+@keyframes flash{0%,60%{background:var(--accent-soft)}100%{background:transparent}}
+.empty{text-align:center;color:var(--muted);padding:28px 10px}
+.addbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.addbar input{flex:1;min-width:160px}
+
+.streak-hero{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.streak-hero .big{font-size:34px;font-weight:800;line-height:1.1}
+.streak-hero .lbl{color:var(--muted);font-size:13px}
+.ice{letter-spacing:2px;font-size:22px}.ice .off{opacity:.25;filter:grayscale(1)}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal .dow{text-align:center;color:var(--muted);font-size:12px}
+.cal .d{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--panel2);font-size:13px;color:var(--muted)}
+.cal .d.done{background:var(--done);color:#fff}
+.cal .d.frozen{background:var(--frozen);color:#fff}
+.cal .d.failed{background:var(--fail);color:#fff}
+.cal .d.pending{background:transparent;border:2px dashed var(--warn);color:var(--text)}
+.cal .d.today{outline:2px solid var(--accent);outline-offset:1px;font-weight:700}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:4px;vertical-align:-1px}
+.dailyitem{display:flex;gap:10px;align-items:center;padding:8px 4px;border-bottom:1px solid var(--border)}
+.dailyitem:last-child{border:none}
+.dailyitem .path{color:var(--muted);font-size:12px}
+.dailyitem input{width:20px;height:20px;accent-color:var(--done)}
+.dailyitem.isdone .t{text-decoration:line-through;color:var(--muted)}
+
+#modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,14,30,.5);z-index:100;padding:16px}
+#modal.on{display:flex}
+.dlg{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);width:100%;max-width:420px;max-height:85vh;overflow:auto;padding:16px;border:1px solid var(--border)}
+.dlg h3{margin:0 0 12px}
+.dlg .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.menu-btn{display:block;width:100%;text-align:left;margin-bottom:6px}
+.pick{padding:9px 10px;border-radius:8px;cursor:pointer}
+.pick:hover{background:var(--panel2)}
+.pick.dis{opacity:.35;pointer-events:none}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:200;max-width:90vw}
+#toast.on{opacity:1}
+
+
+.dt3{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
+.dlg label{display:block;font-size:13px;color:var(--muted)}
+.dlg label>input,.dlg label>select{margin-top:4px}
+.dlg label.chk{display:flex;gap:8px;align-items:center;margin-top:12px;color:var(--text)}
+.dlg label.chk input{width:18px;height:18px;margin:0}
+.dlg textarea{display:block;width:100%;margin:8px 0;resize:vertical}
+.dlg select{margin:6px 0}
+.qchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.qchips button{padding:4px 10px;min-height:30px;font-size:13px}
+.hint{font-size:12px;color:var(--muted);margin-top:8px}
+.pstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px;margin:10px 0}
+.pstat{background:var(--panel2);border-radius:10px;padding:8px 10px}
+.pstat .v{font-weight:800;font-size:17px}
+.pstat .l{font-size:12px;color:var(--muted)}
+.prow{margin-top:10px}
+.pacts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.banner{background:rgba(239,91,91,.12);color:var(--fail);border-radius:10px;padding:8px 12px;margin-top:10px;font-weight:600;cursor:pointer}
+.item-card{border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer;background:var(--panel)}
+.item-card:hover{background:var(--panel2)}
+.ic-t{display:flex;align-items:center;gap:8px;font-weight:600;margin-bottom:6px}
+.ic-t{flex-wrap:wrap}
+.ic-t .nm{flex:1 1 110px;min-width:0;overflow-wrap:anywhere}
+.item-card .bar-meta{gap:4px 10px;flex-wrap:wrap}
+.cal.click .d{cursor:pointer}
+.cal .d.upcoming{background:var(--accent-soft);color:var(--accent)}
+.cal .d.inwin{border:1px solid var(--accent-soft)}
+.cal .d.sel{box-shadow:0 0 0 3px var(--accent)}
+.dayhead{font-size:12px;font-weight:700;color:var(--muted);padding:10px 8px 2px;text-transform:uppercase;letter-spacing:.3px}
+.row.ptask{align-items:flex-start}
+.row.ptask input[type=checkbox]{margin-top:2px}
+.row.ptask .body{flex:1;min-width:0}
+.pt-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:3px;font-size:12px;color:var(--muted)}
+.badge.over{background:var(--fail);color:#fff}
+.badge.today{background:var(--warn);color:#fff}
+.badge.ok{background:rgba(34,181,115,.15);color:var(--done)}
+.badge.up{background:var(--accent-soft);color:var(--accent)}
+.row.overdue{background:rgba(239,91,91,.08)}
+.mini{padding:2px 10px;min-height:28px;font-size:12px}
+@media (max-width:820px){
+  #app{grid-template-columns:1fr}
+  #sidebar{position:fixed;inset:0 auto 0 0;width:300px;max-width:86vw;transform:translateX(-102%);transition:transform .25s;box-shadow:var(--shadow)}
+  #sidebar.open{transform:none}
+  #overlay.on{display:block;position:fixed;inset:0;background:rgba(10,14,30,.45);z-index:25}
+  .topbar #btnMenu{display:inline-block}
+  .streak-hero .big{font-size:28px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sb-head">📓 Notebook</div>
+    <div id="tree"></div>
+    <div class="sb-foot">
+      <button class="primary wide" id="btnAddRoot">＋ Thư mục gốc</button>
+      <button id="btnExport">⬇ Xuất JSON</button>
+      <button id="btnImport">⬆ Nhập JSON</button>
+    </div>
+  </aside>
+  <div id="overlay"></div>
+  <main>
+    <header class="topbar">
+      <button id="btnMenu" class="ghost" aria-label="Mở menu">☰</button>
+      <input id="search" type="search" placeholder="🔍 Tìm công việc, thư mục…">
+      <button id="btnMode" title="Bật/tắt chế độ hoàn thành">☑</button>
+      <button id="btnTheme" title="Sáng/Tối">🌓</button>
+    </header>
+    <div class="chips" id="chips"></div>
+    <section id="content"></section>
+  </main>
+</div>
+<div id="modal"></div>
+<input type="file" id="fileIn" accept="application/json,.json" hidden>
+<div id="toast"></div>
+
+<script>
+/*LOGIC_START*/
+const TZ = 'Asia/Ho_Chi_Minh';
+const MAX_FREEZE = 3;
+const MAX_PLAN_DAYS = 3650;
+const DateUtil = {
+  today(now) {
+    return new Intl.DateTimeFormat('en-CA', {timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit'}).format(now || new Date());
+  },
+  add(s, n) {
+    const p = s.split('-').map(Number);
+    return new Date(Date.UTC(p[0], p[1] - 1, p[2] + n)).toISOString().slice(0, 10);
+  },
+  diff(a, b) {
+    const pa = a.split('-').map(Number), pb = b.split('-').map(Number);
+    return Math.round((Date.UTC(pb[0], pb[1] - 1, pb[2]) - Date.UTC(pa[0], pa[1] - 1, pa[2])) / 864e5);
+  },
+  valid(s) { return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && DateUtil.add(s, 0) === s; }
+};
+const Streak = {
+  /* required: {date:[ids]} = tập việc bắt buộc của từng ngày (ảnh chụp, ngày đã qua không bị ghi đè).
+     Điền các ngày bị bỏ qua (app không mở): phần hằng ngày lấy theo ngày gần nhất,
+     phần kế hoạch lấy theo lịch đến hạn (opts.dueOn). Idempotent. */
+  syncRequired(required, currentIds, today, opts) {
+    const keys = Object.keys(required).filter(k => k < today).sort();
+    if (keys.length) {
+      const last = keys[keys.length - 1];
+      for (let d = DateUtil.add(last, 1); d < today; d = DateUtil.add(d, 1)) {
+        if (!required[d]) {
+          let base = required[last].slice();
+          if (opts) base = base.filter(id => !opts.isPlan(id)).concat(opts.dueOn(d));
+          required[d] = base;
+        }
+      }
+    }
+    required[today] = currentIds.slice();
+    return required;
+  },
+  /* Tính lại toàn bộ chuỗi từ lịch sử (thuần hàm) → không bao giờ tính trùng khi tải lại trang.
+     doneOn[id] = ngày hoàn thành của việc kế hoạch; xong trước hoặc đúng hạn mới tính cho ngày đó. */
+  compute(required, log, today, doneOn) {
+    const res = {current: 0, best: 0, freezes: MAX_FREEZE, days: {}};
+    const keys = Object.keys(required).filter(k => k <= today).sort();
+    if (!keys.length) return res;
+    let cur = 0, best = 0, fr = MAX_FREEZE, prevSt = '';
+    for (let d = keys[0]; d <= today; d = DateUtil.add(d, 1)) {
+      const ids = required[d] || [];
+      if (!ids.length) { res.days[d] = 'none'; continue; }
+      const l = log[d] || {};
+      const done = ids.every(id => l[id] || (doneOn && doneOn[id] && doneOn[id] <= d));
+      if (done) {
+        cur++; if (cur > best) best = cur;
+        /* Chỉ hồi 1 lượt đóng băng khi hôm trước chuỗi đang được giữ bằng một ngày hoàn thành thật sự.
+           Ngày hoàn thành ngay sau ngày đóng băng (hoặc sau khi chuỗi đứt) chỉ nối chuỗi, không hồi lượt. */
+        if (prevSt === 'done') fr = Math.min(MAX_FREEZE, fr + 1);
+        res.days[d] = 'done';
+      } else if (d === today) {
+        res.days[d] = 'pending';
+      } else if (fr > 0) {
+        fr--; res.days[d] = 'frozen';
+      } else {
+        cur = 0; res.days[d] = 'failed';
+      }
+      prevSt = res.days[d];
+    }
+    res.current = cur; res.best = best; res.freezes = fr;
+    return res;
+  }
+};
+/* Engine: dữ liệu + quy tắc của Notebook, kế hoạch dài hạn và liên kết Streak (thuần hàm trên S, kiểm thử được bằng Node). */
+const Engine = {
+  kids(S, pid) { return Object.values(S.nodes).filter(n => n.parentId === pid).sort((a, b) => a.order - b.order); },
+  tEnd(n) { return DateUtil.add(n.sched.start, n.sched.days - 1); },
+  hasSched(n) { return n.type === 'task' && !!n.sched && !n.daily; },
+  isPlanTask(S, n) { const p = n.parentId && S.nodes[n.parentId]; return Engine.hasSched(n) && !!(p && p.plan); },
+  planKids(S, fid) { return Engine.kids(S, fid).filter(k => k.type === 'folder' && k.plan); },
+  planTasks(S, fid) {
+    const out = [];
+    const w = id => Engine.kids(S, id).forEach(k => { if (k.type === 'task') out.push(k); else if (k.plan) w(k.id); });
+    w(fid); return out;
+  },
+  dailyIds(S) { return Object.values(S.nodes).filter(n => n.type === 'task' && n.daily).map(n => n.id); },
+  /* việc kế hoạch ĐẾN HẠN vào ngày d (hạn chót = ngày kết thúc của việc) */
+  dueIds(S, d) { return Object.values(S.nodes).filter(n => Engine.isPlanTask(S, n) && Engine.tEnd(n) === d).map(n => n.id); },
+  requiredNow(S, today) { return Engine.dailyIds(S).concat(Engine.dueIds(S, today)); },
+  isDone(S, id, d) { return !!(S.log[d] && S.log[d][id]) || !!(S.doneOn[id] && S.doneOn[id] <= d); },
+  /* Không cho bỏ tích việc đã xong đúng hạn của một ngày đã khép lại (tránh sửa lịch sử). */
+  canUncheck(S, id, today) {
+    const dn = S.doneOn[id]; if (!dn) return true;
+    for (const d of Object.keys(S.required)) if (d < today && S.required[d].indexOf(id) >= 0 && dn <= d) return false;
+    return true;
+  },
+  sync(S, today) {
+    S.doneOn = S.doneOn || {};
+    for (const n of Object.values(S.nodes)) if (Engine.hasSched(n) && n.done && !S.doneOn[n.id]) S.doneOn[n.id] = today;
+    /* Việc ĐÃ xong của hôm nay luôn được giữ trong yêu cầu hôm nay, kể cả khi sau đó tắt chế độ
+       kế hoạch/hằng ngày hoặc xóa việc → không mất công nhận ngày vừa hoàn thành. Bỏ tích thì tự rơi khỏi danh sách. */
+    const cur = Engine.requiredNow(S, today);
+    (S.required[today] || []).forEach(id => { if (cur.indexOf(id) < 0 && Engine.isDone(S, id, today)) cur.push(id); });
+    Streak.syncRequired(S.required, cur, today, {
+      isPlan: id => { const n = S.nodes[id]; return !!(n && Engine.hasSched(n)); },
+      dueOn: d => Engine.dueIds(S, d)
+    });
+  },
+  toggle(S, id, today) {
+    const n = S.nodes[id]; if (!n || n.type !== 'task') return {ok: false, reason: 'none'};
+    if (n.daily) {
+      const l = S.log[today] = S.log[today] || {};
+      if (l[id]) delete l[id]; else l[id] = true;
+      if (!Object.keys(l).length) delete S.log[today];
+      return {ok: true};
+    }
+    if (Engine.hasSched(n)) {
+      if (!n.done) {
+        if (Engine.isPlanTask(S, n) && n.sched.start > today) return {ok: false, reason: 'notStarted', start: n.sched.start};
+        n.done = true; S.doneOn[id] = today; return {ok: true};
+      }
+      if (!Engine.canUncheck(S, id, today)) return {ok: false, reason: 'locked'};
+      n.done = false; delete S.doneOn[id]; return {ok: true};
+    }
+    n.done = !n.done; return {ok: true};
+  },
+  state(S, n, today) {
+    if (n.daily) return 'daily';
+    if (!n.sched) return 'unscheduled';
+    const e = Engine.tEnd(n);
+    if (n.done) return (S.doneOn[n.id] && S.doneOn[n.id] > e) ? 'late' : 'done';
+    if (e < today) return 'overdue';
+    if (n.sched.start > today) return 'upcoming';
+    return 'active';
+  },
+  /* Cửa sổ thời gian của một kế hoạch: hợp của (thời gian riêng nếu là mục lá) + các việc + các mục con.
+     = từ ngày bắt đầu sớm nhất đến ngày kết thúc xa nhất, KHÔNG cộng dồn số ngày các mục song song. */
+  window(S, fid) {
+    const f = S.nodes[fid]; if (!f) return null;
+    const subs = Engine.planKids(S, fid);
+    let s = null, e = null;
+    const ext = (a, b) => { if (!a) return; if (s === null || a < s) s = a; if (e === null || b > e) e = b; };
+    if (!subs.length && f.sched) ext(f.sched.start, DateUtil.add(f.sched.start, f.sched.days - 1));
+    for (const t of Engine.kids(S, fid)) if (t.type === 'task' && t.sched) ext(t.sched.start, Engine.tEnd(t));
+    for (const c of subs) { const w = Engine.window(S, c.id); if (w) ext(w.start, w.end); }
+    return s === null ? null : {start: s, end: e, days: DateUtil.diff(s, e) + 1};
+  },
+  /* Trạng thái một ngày của riêng kế hoạch (ids = tập id việc kế hoạch thuộc kế hoạch đó).
+     Ngày đã qua đọc từ ảnh chụp required → lịch sử thất bại không đổi khi gia hạn. */
+  dayStatus(S, d, today, ids) {
+    let req = d < today ? (S.required[d] || []) : Engine.dueIds(S, d);
+    req = req.filter(id => ids.has(id));
+    if (!req.length) return 'none';
+    if (req.every(id => S.doneOn[id] && S.doneOn[id] <= d)) return 'done';
+    if (d < today) return 'failed';
+    return d === today ? 'pending' : 'upcoming';
+  },
+  addNode(S, parentId, type, title, ctx, extra) {
+    const sib = Engine.kids(S, parentId), id = ctx.uid();
+    const n = {id, parentId, type, title, order: sib.length ? sib[sib.length - 1].order + 1 : 0, done: false, daily: false, collapsed: false};
+    if (extra) Object.assign(n, extra);
+    const p = parentId && S.nodes[parentId];
+    if (type === 'folder' && p && p.plan) { n.plan = true; n.sched = n.sched || {start: ctx.today, days: 7}; }
+    S.nodes[id] = n;
+    if (p) p.collapsed = false;
+    return id;
+  },
+  setPlan(S, id, on, today) {
+    const f = S.nodes[id]; if (!f || f.type !== 'folder') return;
+    const walk = x => { x.plan = !!on; if (on && !x.sched) x.sched = {start: today, days: 7}; Engine.kids(S, x.id).filter(k => k.type === 'folder').forEach(walk); };
+    walk(f);
+  },
+  setWindow(S, fid, start, days, shiftTasks, today) {
+    const f = S.nodes[fid], old = f.sched;
+    if (shiftTasks && old) {
+      const delta = DateUtil.diff(old.start, start);
+      if (delta) for (const t of Engine.kids(S, fid)) {
+        if (t.type === 'task' && t.sched && !t.done && Engine.tEnd(t) >= today) {
+          const ns = DateUtil.add(t.sched.start, delta);
+          if (DateUtil.add(ns, t.sched.days - 1) >= today) t.sched.start = ns;
+        }
+      }
+    }
+    f.sched = {start, days};
+  },
+  /* Đặt/gia hạn thời gian một việc. Hạn mới phải từ hôm nay trở đi (trừ việc đã xong).
+     Ngày hạn cũ đã qua vẫn nằm trong ảnh chụp required → thất bại cũ được giữ, không tính lại. */
+  setTaskSched(S, id, start, days, today) {
+    const n = S.nodes[id]; days = Math.floor(days);
+    if (!DateUtil.valid(start) || !(days >= 1) || days > MAX_PLAN_DAYS) return {ok: false, reason: 'invalid'};
+    if (!n.done && DateUtil.add(start, days - 1) < today) return {ok: false, reason: 'past'};
+    n.sched = {start, days};
+    if (n.done && !S.doneOn[id]) S.doneOn[id] = today;
+    return {ok: true};
+  }
+};
+/*LOGIC_END*/
+
+(() => {
+'use strict';
+const LS = 'notebook_app_v1';
+const $ = s => document.querySelector(s);
+function h(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (v === true) e.setAttribute(k, '');
+    else if (v !== false && v != null) e.setAttribute(k, v);
+  }
+  for (const c of kids.flat()) { if (c == null || c === false) continue; e.append(c.nodeType ? c : document.createTextNode(c)); }
+  return e;
+}
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 9));
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
+
+const fmt = d => d.split('-').reverse().join('/');
+/* ---------- State ---------- */
+let S, cur = null, view = 'notes', today = DateUtil.today(), calMonth = today.slice(0, 7), query = '';
+
+function sample() {
+  const n = {}; let o = 0;
+  const add = (parentId, type, title, extra) => { const id = uid(); n[id] = Object.assign({id, parentId, type, title, order: o++, done: false, daily: false, collapsed: false}, extra || {}); return id; };
+  const lt = add(null, 'folder', 'Luyện tập');
+  const gym = add(lt, 'folder', 'Gym');
+  const t2 = add(gym, 'folder', 'Thứ 2');
+  add(t2, 'task', 'Tập Squat 20 cái'); add(t2, 'task', 'Chống đẩy 15 cái');
+  add(add(gym, 'folder', 'Thứ 3'), 'task', 'Tập bụng');
+  const en = add(lt, 'folder', 'Tiếng Anh');
+  add(add(en, 'folder', 'Từ vựng'), 'task', 'Học 10 từ mới', {daily: true});
+  return n;
+}
+function defaultState() { return {v: 1, nodes: sample(), required: {}, log: {}, doneOn: {}, settings: {mode: true, theme: null}}; }
+function valid(o) { return o && typeof o === 'object' && o.nodes && typeof o.nodes === 'object' && o.required && typeof o.required === 'object' && o.log && typeof o.log === 'object'; }
+function load() {
+  try { const o = JSON.parse(localStorage.getItem(LS)); if (valid(o)) { o.settings = o.settings || {mode: true, theme: null}; o.doneOn = o.doneOn || {}; return o; } } catch (e) {}
+  return defaultState();
+}
+function save() { try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) { toast('Không thể lưu dữ liệu (bộ nhớ đầy?)'); } }
+function dailyIds() { return Object.values(S.nodes).filter(n => n.type === 'task' && n.daily).map(n => n.id); }
+function sync() { Engine.sync(S, today); }
+function commit() { sync(); save(); render(); }
+
+/* ---------- Tree helpers ---------- */
+const kids = pid => Object.values(S.nodes).filter(n => n.parentId === pid).sort((a, b) => a.order - b.order);
+function isDesc(id, anc) { let p = S.nodes[id] && S.nodes[id].parentId; while (p) { if (p === anc) return true; p = S.nodes[p] && S.nodes[p].parentId; } return false; }
+function path(id) { const out = []; let n = S.nodes[id]; while (n) { out.unshift(n); n = n.parentId ? S.nodes[n.parentId] : null; } return out; }
+function addNode(parentId, type, title, extra) {
+  const id = Engine.addNode(S, parentId, type, title, {uid, today}, extra);
+  commit(); return id;
+}
+function removeNode(id) {
+  const st = [id];
+  while (st.length) { const x = st.pop(); kids(x).forEach(k => st.push(k.id)); delete S.nodes[x]; }
+  if (cur && !S.nodes[cur]) cur = null;
+  commit();
+}
+function moveNode(id, newParent, index) {
+  if (newParent && (newParent === id || isDesc(newParent, id))) return false;
+  const n = S.nodes[id]; if (!n) return false;
+  const oldP = n.parentId;
+  const sib = kids(newParent).filter(k => k.id !== id);
+  if (index == null || index > sib.length) index = sib.length;
+  sib.splice(index, 0, n); n.parentId = newParent;
+  sib.forEach((k, i) => k.order = i);
+  if (oldP !== newParent) kids(oldP).forEach((k, i) => k.order = i);
+  if (newParent && S.nodes[newParent]) S.nodes[newParent].collapsed = false;
+  if (n.type === 'folder' && newParent && S.nodes[newParent] && S.nodes[newParent].plan && !n.plan) Engine.setPlan(S, id, true, today);
+  commit(); return true;
+}
+function shift(id, dir) {
+  const n = S.nodes[id], sib = kids(n.parentId), i = sib.findIndex(k => k.id === id), j = i + dir;
+  if (j < 0 || j >= sib.length) return;
+  moveNode(id, n.parentId, j);
+}
+const taskDone = n => n.daily ? !!(S.log[today] && S.log[today][n.id]) : !!n.done;
+function toggleTask(id) {
+  const r = Engine.toggle(S, id, today);
+  if (!r.ok) {
+    toast(r.reason === 'notStarted' ? `Chưa đến ngày bắt đầu (${fmt(r.start)})` : r.reason === 'locked' ? 'Ngày này đã khép lại — không thể bỏ tích việc đã hoàn thành đúng hạn' : 'Không thể thay đổi');
+    render(); return;
+  }
+  commit();
+}
+function subtreeTasks(pid) { const out = []; const w = p => kids(p).forEach(k => k.type === 'task' ? out.push(k) : w(k.id)); w(pid); return out; }
+function stat(pid) { const t = subtreeTasks(pid); return {total: t.length, done: t.filter(taskDone).length}; }
+
+/* ---------- UI primitives ---------- */
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2400); }
+function openModal(content) { const m = $('#modal'); m.replaceChildren(content); m.classList.add('on'); }
+function closeModal() { $('#modal').classList.remove('on'); $('#modal').replaceChildren(); }
+$('#modal').addEventListener('mousedown', e => { if (e.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+function askText(title, def, okLabel) {
+  return new Promise(res => {
+    const inp = h('input', {type: 'text', value: def || '', maxlength: 200});
+    const done = v => { closeModal(); res(v); };
+    const ok = () => { const v = inp.value.trim(); if (v) done(v); else inp.focus(); };
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') ok(); });
+    openModal(h('div', {class: 'dlg'}, h('h3', {}, title), inp,
+      h('div', {class: 'acts'}, h('button', {onclick: () => done(null)}, 'Hủy'), h('button', {class: 'primary', onclick: ok}, okLabel || 'Lưu'))));
+    setTimeout(() => { inp.focus(); inp.select(); }, 30);
+  });
+}
+function confirmBox(msg, label) {
+  return new Promise(res => {
+    const done = v => { closeModal(); res(v); };
+    openModal(h('div', {class: 'dlg'}, h('h3', {}, msg),
+      h('div', {class: 'acts'}, h('button', {onclick: () => done(false)}, 'Hủy'), h('button', {class: 'primary danger', onclick: () => done(true)}, label || 'Đồng ý'))));
+  });
+}
+function sheet(title, items) {
+  openModal(h('div', {class: 'dlg'}, h('h3', {}, title),
+    items.filter(Boolean).map(it => h('button', {class: 'menu-btn' + (it.danger ? ' danger' : ''), onclick: () => { closeModal(); it.fn(); }}, it.label)),
+    h('div', {class: 'acts'}, h('button', {onclick: closeModal}, 'Đóng'))));
+}
+function pickFolder(movingId) {
+  const box = h('div', {});
+  box.append(h('div', {class: 'pick', onclick: () => { closeModal(); doMove(movingId, null); }}, '📚 Gốc (Notebook)'));
+  const walk = (pid, depth) => kids(pid).filter(k => k.type === 'folder').forEach(f => {
+    const bad = f.id === movingId || isDesc(f.id, movingId);
+    box.append(h('div', {class: 'pick' + (bad ? ' dis' : ''), style: `padding-left:${10 + depth * 18}px`, onclick: () => { closeModal(); doMove(movingId, f.id); }}, '📁 ' + f.title));
+    if (!bad) walk(f.id, depth + 1);
+  });
+  walk(null, 1);
+  openModal(h('div', {class: 'dlg'}, h('h3', {}, 'Di chuyển đến…'), box, h('div', {class: 'acts'}, h('button', {onclick: closeModal}, 'Hủy'))));
+}
+function doMove(id, target) { if (moveNode(id, target)) toast('Đã di chuyển'); else toast('Không thể di chuyển vào chính nó'); }
+
+/* ---------- Item actions ---------- */
+async function addTo(parentId, type) {
+  const par = parentId && S.nodes[parentId];
+  if (type === 'task' && par && par.plan) return addPlanTasks(parentId);
+  const t = await askText(type === 'folder' ? 'Tên thư mục mới' : 'Tên công việc mới', '', 'Thêm');
+  if (t) { const id = addNode(parentId, type, t); if (type === 'folder' && par && par.plan) editWindow(id); }
+}
+async function rename(id) { const t = await askText('Đổi tên', S.nodes[id].title); if (t) { S.nodes[id].title = t; commit(); } }
+async function del(id) {
+  const n = S.nodes[id];
+  const cnt = n.type === 'folder' ? subtreeTasks(id).length : 0;
+  if (await confirmBox(`Xóa “${n.title}”${n.type === 'folder' ? ` và toàn bộ nội dung (${cnt} công việc)` : ''}?`, 'Xóa')) removeNode(id);
+}
+function menuFor(id) {
+  const n = S.nodes[id];
+  const common = [
+    {label: '✏️ Đổi tên', fn: () => rename(id)},
+    {label: '↕️ Lên trên', fn: () => shift(id, -1)},
+    {label: '↕️ Xuống dưới', fn: () => shift(id, 1)},
+    {label: '📂 Di chuyển đến…', fn: () => pickFolder(id)},
+    {label: '🗑 Xóa', fn: () => del(id), danger: true}
+  ];
+  if (n.type === 'folder') sheet((n.plan ? '🗓 ' : '📁 ') + n.title, [
+    {label: '📁 Thêm thư mục con', fn: () => addTo(id, 'folder')},
+    {label: n.plan ? '☑ Thêm công việc vào kế hoạch' : '☑ Thêm công việc', fn: () => addTo(id, 'task')},
+    {label: '➡️ Mở thư mục', fn: () => { cur = id; view = 'notes'; render(); }},
+    {label: n.plan ? '🗓 Tắt chế độ kế hoạch dài hạn' : '🗓 Chế độ kế hoạch dài hạn', fn: () => togglePlan(id)},
+    n.plan && !Engine.planKids(S, id).length ? {label: '⏱ Chỉnh sửa thời gian', fn: () => editWindow(id)} : null,
+    ...common]);
+  else {
+    const par = n.parentId && S.nodes[n.parentId], inPlan = !!(par && par.plan);
+    sheet('☑ ' + n.title, [
+      {label: n.daily ? '🔁 Tắt chế độ hằng ngày' : '🔁 Chuyển thành hằng ngày', fn: () => toggleDaily(id)},
+      inPlan && !n.daily ? {label: n.sched ? '⏱ Thời gian / gia hạn' : '⏱ Lên lịch cho việc này', fn: () => editTaskTime(id)} : null,
+      ...common]);
+  }
+}
+function toggleDaily(id) {
+  const n = S.nodes[id]; n.daily = !n.daily; commit();
+  toast(n.daily ? 'Đã bật hằng ngày — lặp lại mỗi ngày' : 'Đã tắt chế độ hằng ngày');
+}
+
+/* ---------- Rendering ---------- */
+function applyTheme() {
+  const t = S.settings.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.dataset.theme = t;
+}
+function renderChips() {
+  const r = Streak.compute(S.required, S.log, today, S.doneOn);
+  const ids = S.required[today] || [], dn = ids.filter(i => Engine.isDone(S, i, today)).length;
+  $('#btnMode').classList.toggle('active', !!S.settings.mode);
+  const box = $('#chips');
+  box.replaceChildren(
+    h('span', {class: 'chip btn', onclick: () => { view = 'streak'; render(); }}, `🔥 ${r.current} ngày`),
+    h('span', {class: 'chip btn', onclick: () => { view = 'streak'; render(); }}, `🏆 ${r.best}`),
+    h('span', {class: 'chip btn', onclick: () => { view = 'streak'; render(); }}, `🧊 ${r.freezes}/${MAX_FREEZE}`),
+    ids.length ? h('span', {class: 'chip'}, `📅 Hôm nay ${dn}/${ids.length}`) : null,
+    h('span', {class: 'spacer'}),
+    h('span', {class: 'chip btn' + (view === 'notes' ? ' active' : ''), onclick: () => { view = 'notes'; render(); }}, '📓 Notebook'),
+    h('span', {class: 'chip btn' + (view === 'streak' ? ' active' : ''), onclick: () => { view = 'streak'; render(); }}, '🔥 Streak'));
+}
+function renderTree() {
+  const box = $('#tree'); box.replaceChildren();
+  const item = (id, title, depth, hasKids, collapsed) => {
+    const sel = view === 'notes' && cur === id;
+    const row = h('div', {class: 'tnode' + (sel ? ' sel' : ''), style: `padding-left:${8 + depth * 16}px`},
+      h('span', {class: 'chev', onclick: e => { e.stopPropagation(); if (id && hasKids) { S.nodes[id].collapsed = !collapsed; save(); renderTree(); } }}, hasKids ? (collapsed ? '▸' : '▾') : ''),
+      h('span', {}, id ? (S.nodes[id].plan ? '🗓' : '📁') : '📚'), h('span', {class: 'nm'}, title));
+    row.addEventListener('click', () => { cur = id; view = 'notes'; query = ''; $('#search').value = ''; closeDrawer(); render(); });
+    box.append(row);
+  };
+  item(null, 'Tất cả', 0, false, false);
+  const walk = (pid, depth) => kids(pid).filter(k => k.type === 'folder').forEach(f => {
+    const sub = kids(f.id).some(k => k.type === 'folder');
+    item(f.id, f.title, depth, sub, f.collapsed);
+    if (sub && !f.collapsed) walk(f.id, depth + 1);
+  });
+  walk(null, 1);
+}
+function taskCheck(n) {
+  const cb = h('input', {type: 'checkbox'}); cb.checked = taskDone(n);
+  cb.addEventListener('change', () => toggleTask(n.id));
+  return cb;
+}
+function buildRow(n, depth) {
+  const isF = n.type === 'folder', d = !isF && taskDone(n), mode = S.settings.mode;
+  const el = h('div', {class: 'row ' + n.type + (d && mode ? ' isdone' : ''), draggable: 'true', 'data-id': n.id, style: `padding-left:${6 + depth * 20}px`});
+  if (isF) {
+    el.append(h('span', {class: 'chev', onclick: () => { n.collapsed = !n.collapsed; save(); render(); }}, n.collapsed ? '▸' : '▾'));
+    el.append(h('span', {class: 'ico'}, n.plan ? '🗓' : '📁'));
+    el.append(h('span', {class: 'title', onclick: () => { cur = n.id; render(); }}, n.title));
+    if (mode) { const s = stat(n.id); if (s.total) el.append(h('span', {class: 'badge'}, `${s.done}/${s.total}`)); }
+    const od = subtreeTasks(n.id).filter(t => Engine.state(S, t, today) === 'overdue').length;
+    if (od) el.append(h('span', {class: 'badge over'}, `⚠️ ${od}`));
+  } else {
+    el.append(h('span', {class: 'chev'}));
+    if (mode) el.append(taskCheck(n)); else el.append(h('span', {class: 'ico'}, '▫️'));
+    el.append(h('span', {class: 'title'}, n.title));
+    el.append(h('button', {class: 'badge' + (n.daily ? ' daily' : ''), style: 'border:none;cursor:pointer', title: 'Bật/tắt hằng ngày', onclick: () => toggleDaily(n.id)}, n.daily ? '🔁 Hằng ngày' : '🔁'));
+  }
+  el.append(h('button', {class: 'more', 'aria-label': 'Tùy chọn', onclick: () => menuFor(n.id)}, '⋯'));
+  return el;
+}
+function renderRows(pid, depth, box) {
+  for (const n of kids(pid)) {
+    box.append(buildRow(n, depth));
+    if (n.type === 'folder' && !n.collapsed) renderRows(n.id, depth + 1, box);
+  }
+}
+function crumbs() {
+  const c = h('div', {class: 'crumbs'});
+  c.append(h('button', {onclick: () => { cur = null; render(); }}, '📚 Notebook'));
+  const p = path(cur);
+  if (cur) c.append(h('button', {class: 'ghost', title: 'Quay lại thư mục cha', onclick: () => { cur = p.length > 1 ? p[p.length - 2].id : null; render(); }}, '⬆ Lên'));
+  p.forEach((n, i) => { c.append(' / '); c.append(i === p.length - 1 ? h('span', {class: 'cur'}, n.title) : h('button', {onclick: () => { cur = n.id; render(); }}, n.title)); });
+  return c;
+}
+function renderNotes() {
+  const box = $('#content'); box.replaceChildren();
+  if (query) return renderSearch(box);
+  if (cur && S.nodes[cur] && S.nodes[cur].plan) return renderPlan(box, cur);
+  box.append(crumbs());
+  const head = h('div', {class: 'card'}, h('h2', {}, cur ? '📁 ' + S.nodes[cur].title : '📚 Tất cả ghi chú'));
+  if (S.settings.mode) {
+    const s = stat(cur), pct = s.total ? Math.round(s.done / s.total * 100) : 0;
+    head.append(h('div', {class: 'bar'}, h('i', {style: `width:${pct}%`})), h('div', {class: 'bar-meta'}, h('span', {}, `${s.done}/${s.total} công việc hoàn thành`), h('span', {}, pct + '%')));
+  } else head.append(h('div', {class: 'bar-meta'}, 'Chế độ hoàn thành đang tắt (trạng thái cũ vẫn được giữ).'));
+  box.append(head);
+  const list = h('div', {class: 'card list'});
+  if (!kids(cur).length) list.append(h('div', {class: 'empty'}, 'Thư mục trống. Hãy thêm thư mục hoặc công việc bên dưới.'));
+  else renderRows(cur, 0, list);
+  attachDnD(list);
+  box.append(list);
+  const inp = h('input', {type: 'text', placeholder: 'Tên mục mới… (Enter = thêm công việc)', maxlength: 200});
+  const go = type => { const v = inp.value.trim(); if (!v) { inp.focus(); return; } addNode(cur, type, v); };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') go('task'); });
+  box.append(h('div', {class: 'addbar'}, inp, h('button', {onclick: () => go('folder')}, '＋ Thư mục'), h('button', {class: 'primary', onclick: () => go('task')}, '＋ Công việc')));
+}
+function renderSearch(box) {
+  const q = norm(query);
+  const res = Object.values(S.nodes).filter(n => norm(n.title).includes(q));
+  box.append(h('div', {class: 'crumbs'}, h('span', {class: 'cur'}, `Kết quả cho “${query}” (${res.length})`)));
+  const list = h('div', {class: 'card list'});
+  if (!res.length) list.append(h('div', {class: 'empty'}, 'Không tìm thấy kết quả.'));
+  res.forEach(n => {
+    const p = path(n.id).slice(0, -1).map(x => x.title).join(' / ') || 'Gốc';
+    const go = () => { cur = n.type === 'folder' ? n.id : n.parentId; query = ''; $('#search').value = ''; view = 'notes'; render(); const el = document.querySelector(`[data-id="${n.id}"]`); if (el) { el.scrollIntoView({block: 'center'}); el.classList.add('flash'); } };
+    const row = h('div', {class: 'row'});
+    if (n.type === 'task' && S.settings.mode) row.append(taskCheck(n));
+    else row.append(h('span', {class: 'ico'}, n.type === 'folder' ? '📁' : '▫️'));
+    row.append(h('span', {class: 'title', style: 'cursor:pointer', onclick: go}, h('div', {}, n.title), h('div', {class: 'badge', style: 'display:inline-block;margin-top:2px'}, p)));
+    list.append(row);
+  });
+  box.append(list);
+}
+
+/* ---------- Drag & drop ---------- */
+let dragId = null;
+function attachDnD(list) {
+  const clear = () => list.querySelectorAll('.drop-before,.drop-after,.drop-into').forEach(e => e.classList.remove('drop-before', 'drop-after', 'drop-into'));
+  const zone = (e, row) => {
+    const r = row.getBoundingClientRect(), y = (e.clientY - r.top) / r.height;
+    const t = S.nodes[row.dataset.id];
+    if (t.type === 'folder') return y < .3 ? 'before' : y > .7 ? 'after' : 'into';
+    return y < .5 ? 'before' : 'after';
+  };
+  list.addEventListener('dragstart', e => { const row = e.target.closest && e.target.closest('.row'); if (!row) return; dragId = row.dataset.id; row.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragId); } catch (x) {} });
+  list.addEventListener('dragend', () => { dragId = null; clear(); list.querySelectorAll('.dragging').forEach(e => e.classList.remove('dragging')); });
+  list.addEventListener('dragover', e => {
+    const row = e.target.closest('.row'); if (!row || !dragId || row.dataset.id === dragId) return;
+    const t = row.dataset.id; if (isDesc(t, dragId)) return;
+    e.preventDefault(); clear(); row.classList.add('drop-' + zone(e, row));
+  });
+  list.addEventListener('drop', e => {
+    const row = e.target.closest('.row'); if (!row || !dragId) return;
+    e.preventDefault();
+    const t = S.nodes[row.dataset.id], z = zone(e, row), id = dragId; dragId = null; clear();
+    if (!t || t.id === id || isDesc(t.id, id)) return;
+    if (z === 'into') { moveNode(id, t.id, null); return; }
+    const sib = kids(t.parentId).filter(k => k.id !== id), idx = sib.findIndex(k => k.id === t.id);
+    moveNode(id, t.parentId, z === 'before' ? idx : idx + 1);
+  });
+}
+
+/* ---------- Kế hoạch dài hạn ---------- */
+let pFilter = 'all', pDay = null, pMonth = null, pLast = null;
+const DOW = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+const dowOf = d => DOW[new Date(d + 'T00:00:00Z').getUTCDay()];
+function togglePlan(id) {
+  const on = !S.nodes[id].plan;
+  Engine.setPlan(S, id, on, today);
+  if (on) { cur = id; view = 'notes'; }
+  commit();
+  toast(on ? 'Đã bật chế độ kế hoạch dài hạn' : 'Đã tắt chế độ kế hoạch (dữ liệu và lịch sử vẫn được giữ)');
+}
+/* ô nhập: ngày bắt đầu + số ngày (≥1) + ngày kết thúc tự tính (sửa được) */
+function dateTriple(start, days) {
+  const st = h('input', {type: 'date', value: start}), dy = h('input', {type: 'number', min: '1', max: String(MAX_PLAN_DAYS), step: '1', value: String(days)});
+  const en = h('input', {type: 'date', value: DateUtil.add(start, days - 1)});
+  const n = () => Math.max(1, parseInt(dy.value, 10) || 1);
+  const upd = () => { if (DateUtil.valid(st.value)) en.value = DateUtil.add(st.value, n() - 1); };
+  st.addEventListener('change', upd); dy.addEventListener('input', upd);
+  en.addEventListener('change', () => {
+    if (DateUtil.valid(st.value) && DateUtil.valid(en.value)) { dy.value = String(Math.max(1, DateUtil.diff(st.value, en.value) + 1)); en.value = DateUtil.add(st.value, n() - 1); }
+  });
+  return {
+    st, dy, en,
+    el: h('div', {class: 'dt3'}, h('label', {}, 'Ngày bắt đầu', st), h('label', {}, 'Số ngày thực hiện (tối thiểu 1)', dy), h('label', {}, 'Ngày kết thúc (tự tính)', en)),
+    setEnd: e => { en.value = e; en.dispatchEvent(new Event('change')); },
+    get: () => ({start: st.value, days: n()})
+  };
+}
+function editWindow(fid) {
+  const f = S.nodes[fid];
+  if (Engine.planKids(S, fid).length) {
+    const w = Engine.window(S, fid);
+    toast('Thời gian của kế hoạch tổng tự tính theo mục con xa nhất' + (w ? ` (${w.days} ngày)` : '') + '. Hãy chỉnh thời gian từng mục con.'); return;
+  }
+  const base = f.sched || {start: today, days: 7}, dt = dateTriple(base.start, base.days);
+  const shiftCb = h('input', {type: 'checkbox', checked: true});
+  const ok = () => {
+    const v = dt.get();
+    if (!DateUtil.valid(v.start)) { toast('Ngày bắt đầu không hợp lệ'); return; }
+    if (v.days > MAX_PLAN_DAYS) { toast(`Tối đa ${MAX_PLAN_DAYS} ngày`); return; }
+    Engine.setWindow(S, fid, v.start, v.days, shiftCb.checked, today);
+    closeModal(); commit(); toast('Đã cập nhật thời gian kế hoạch');
+  };
+  openModal(h('div', {class: 'dlg'}, h('h3', {}, '⏱ Thời gian: ' + f.title), dt.el,
+    h('label', {class: 'chk'}, shiftCb, 'Dời các công việc chưa xong theo ngày bắt đầu mới'),
+    h('div', {class: 'hint'}, 'Tổng thời gian của kế hoạch tự mở rộng theo công việc có hạn xa nhất. Lịch sử ngày đã qua không bị thay đổi.'),
+    h('div', {class: 'acts'}, h('button', {onclick: closeModal}, 'Hủy'), h('button', {class: 'primary', onclick: ok}, 'Lưu'))));
+}
+function editTaskTime(id) {
+  const n = S.nodes[id], base = n.sched || {start: today, days: 1}, dt = dateTriple(base.start, base.days);
+  const od = n.sched && Engine.state(S, n, today) === 'overdue';
+  const chips = h('div', {class: 'qchips'}, [['Hôm nay', 0], ['Ngày mai', 1], ['+3 ngày', 3], ['+7 ngày', 7]].map(([l, k]) => h('button', {onclick: () => dt.setEnd(DateUtil.add(today, k))}, 'Hạn: ' + l)));
+  const ok = () => {
+    const v = dt.get(), r = Engine.setTaskSched(S, id, v.start, v.days, today);
+    if (!r.ok) { toast(r.reason === 'past' ? 'Hạn mới phải từ hôm nay trở đi (ngày đã qua không thể tính lại)' : 'Ngày hoặc thời lượng không hợp lệ'); return; }
+    closeModal(); commit(); toast(od ? 'Đã gia hạn — lịch sử thất bại cũ vẫn được giữ' : 'Đã cập nhật thời gian');
+  };
+  openModal(h('div', {class: 'dlg'}, h('h3', {}, (od ? '⏱ Gia hạn: ' : '⏱ Thời gian: ') + n.title),
+    od ? h('div', {class: 'hint'}, `Đã quá hạn ${DateUtil.diff(Engine.tEnd(n), today)} ngày. Ngày hạn cũ (${fmt(Engine.tEnd(n))}) vẫn được ghi nhận thất bại; chỉ hạn mới được tính tiếp.`) : null,
+    dt.el, chips,
+    h('div', {class: 'acts'}, h('button', {onclick: closeModal}, 'Hủy'), h('button', {class: 'primary', onclick: ok}, 'Lưu'))));
+}
+function addPlanTasks(fid) {
+  const targets = [];
+  const walk = (id, depth) => { targets.push({id, depth}); Engine.planKids(S, id).forEach(k => walk(k.id, depth + 1)); };
+  walk(fid, 0);
+  const sel = h('select', {}, targets.map(t => h('option', {value: t.id}, '  '.repeat(t.depth) + S.nodes[t.id].title)));
+  const ta = h('textarea', {rows: '3', placeholder: 'Mỗi dòng là một công việc (thêm nhiều việc cùng một ngày)…', maxlength: '2000'});
+  const w0 = Engine.window(S, fid);
+  const dt = dateTriple(w0 && w0.start > today ? w0.start : today, 1);
+  const info = h('div', {class: 'hint'});
+  const refresh = () => {
+    const v = dt.get(), w = Engine.window(S, sel.value);
+    info.textContent = DateUtil.valid(v.start) ? `Ngày ${w ? DateUtil.diff(w.start, v.start) + 1 : 1} của kế hoạch · hạn chót ${DateUtil.valid(dt.en.value) ? fmt(dt.en.value) : '—'}` : 'Ngày không hợp lệ';
+  };
+  [dt.st, dt.dy, dt.en, sel].forEach(e => { e.addEventListener('change', refresh); });
+  dt.dy.addEventListener('input', refresh);
+  const setStart = d => { dt.st.value = d; dt.st.dispatchEvent(new Event('change')); };
+  const nextDay = () => {
+    const mx = Engine.planTasks(S, sel.value).filter(t => Engine.hasSched(t)).reduce((m, t) => { const e = Engine.tEnd(t); return e > m ? e : m; }, '');
+    const c = mx ? DateUtil.add(mx, 1) : today; return c < today ? today : c;
+  };
+  const chips = h('div', {class: 'qchips'},
+    h('button', {onclick: () => setStart(today)}, 'Hôm nay'),
+    h('button', {onclick: () => setStart(DateUtil.add(today, 1))}, 'Ngày mai'),
+    h('button', {onclick: () => setStart(nextDay())}, 'Ngày kế tiếp'));
+  const submit = keep => {
+    const lines = ta.value.split('\n').map(x => x.trim()).filter(Boolean);
+    if (!lines.length) { ta.focus(); return; }
+    const v = dt.get();
+    if (!DateUtil.valid(v.start) || v.days > MAX_PLAN_DAYS) { toast('Ngày hoặc thời lượng không hợp lệ'); return; }
+    if (DateUtil.add(v.start, v.days - 1) < today) { toast('Hạn chót phải từ hôm nay trở đi (không thêm việc vào quá khứ)'); return; }
+    lines.forEach(t => Engine.addNode(S, sel.value, 'task', t.slice(0, 200), {uid, today}, {sched: {start: v.start, days: v.days}}));
+    commit(); toast(`Đã thêm ${lines.length} công việc`);
+    if (keep) { ta.value = ''; ta.focus(); refresh(); } else closeModal();
+  };
+  openModal(h('div', {class: 'dlg'}, h('h3', {}, '＋ Thêm công việc vào kế hoạch'),
+    targets.length > 1 ? h('label', {}, 'Thêm vào mục', sel) : null, ta, dt.el, chips, info,
+    h('div', {class: 'acts'}, h('button', {onclick: closeModal}, 'Đóng'), h('button', {onclick: () => submit(true)}, 'Lưu & thêm tiếp'), h('button', {class: 'primary', onclick: () => submit(false)}, 'Thêm'))));
+  refresh(); setTimeout(() => ta.focus(), 30);
+}
+function pstat(v, l) { return h('div', {class: 'pstat'}, h('div', {class: 'v'}, String(v)), h('div', {class: 'l'}, l)); }
+function barBlock(label, pct) { return h('div', {class: 'prow'}, h('div', {class: 'bar-meta', style: 'margin:0 0 4px'}, h('b', {}, label)), h('div', {class: 'bar'}, h('i', {style: `width:${pct}%`}))); }
+function ptaskRow(t, fid, wc) {
+  const s = Engine.state(S, t, today), e = t.sched ? Engine.tEnd(t) : null, dn = taskDone(t);
+  const cb = h('input', {type: 'checkbox'}); cb.checked = dn; cb.addEventListener('change', () => toggleTask(t.id));
+  const meta = h('div', {class: 'pt-meta'});
+  if (t.sched) {
+    const pw = wc[t.parentId] || (wc[t.parentId] = Engine.window(S, t.parentId));
+    meta.append(h('span', {}, `Ngày ${pw ? DateUtil.diff(pw.start, t.sched.start) + 1 : 1}`),
+      h('span', {}, t.sched.days > 1 ? `${fmt(t.sched.start)} → ${fmt(e)} (${t.sched.days} ngày)` : fmt(t.sched.start)));
+  }
+  const B = {
+    overdue: ['over', e ? `⚠️ QUÁ HẠN ${DateUtil.diff(e, today)} ngày` : ''], late: ['ok', '✅ Xong trễ'], done: ['ok', '✅ Hoàn thành'],
+    active: e === today ? ['today', '⏰ Hạn hôm nay'] : ['up', '🟡 Đang thực hiện'], upcoming: ['up', '⏳ Sắp tới'],
+    unscheduled: ['', '📌 Chưa lên lịch'], daily: ['up', '🔁 Hằng ngày']
+  }[s];
+  meta.append(h('span', {class: 'badge ' + B[0]}, B[1]));
+  if (t.parentId !== fid) meta.append(h('span', {class: 'badge'}, '📁 ' + S.nodes[t.parentId].title));
+  if (s === 'overdue') meta.append(h('button', {class: 'mini', onclick: () => editTaskTime(t.id)}, '⏱ Gia hạn'));
+  return h('div', {class: 'row ptask' + (dn ? ' isdone' : '') + (s === 'overdue' ? ' overdue' : ''), 'data-id': t.id},
+    cb, h('div', {class: 'body'}, h('div', {class: 'title'}, t.title), meta),
+    h('button', {class: 'more', 'aria-label': 'Tùy chọn', onclick: () => menuFor(t.id)}, '⋯'));
+}
+function renderPlan(box, fid) {
+  const f = S.nodes[fid];
+  if (pLast !== fid) { pLast = fid; pFilter = 'all'; pDay = null; pMonth = null; }
+  box.append(crumbs());
+  const w = Engine.window(S, fid), tasks = Engine.planTasks(S, fid);
+  const ids = new Set(tasks.filter(t => Engine.isPlanTask(S, t)).map(t => t.id));
+  const g = Streak.compute(S.required, S.log, today, S.doneOn);
+  const stt = {}; let doneDays = 0;
+  if (w) for (let d = w.start; d <= w.end; d = DateUtil.add(d, 1)) { const x = Engine.dayStatus(S, d, today, ids); stt[d] = x; if (x === 'done') doneDays++; }
+  const total = tasks.length, done = tasks.filter(taskDone).length, pct = total ? Math.round(done / total * 100) : 0;
+  const over = tasks.filter(t => Engine.state(S, t, today) === 'overdue');
+  const idx = w ? Math.max(0, Math.min(w.days, DateUtil.diff(w.start, today) + 1)) : 0;
+  const tpct = w ? Math.round(idx / w.days * 100) : 0;
+
+  /* dashboard */
+  const dash = h('div', {class: 'card'}, h('h2', {}, '🗓 KẾ HOẠCH: ' + f.title.toUpperCase()));
+  dash.append(h('div', {class: 'pstats'}, pstat(w ? fmt(w.start) : '—', 'Bắt đầu'), pstat(w ? fmt(w.end) : '—', 'Kết thúc'), pstat(w ? w.days : '—', 'Tổng số ngày'),
+    pstat(doneDays, 'Ngày hoàn thành'), pstat(w ? Math.max(0, w.days - idx) : '—', 'Ngày còn lại')));
+  dash.append(barBlock(`Tiến độ công việc: ${done}/${total} (${pct}%)`, pct));
+  if (w) dash.append(barBlock(today < w.start ? `Tiến độ thời gian: chưa bắt đầu (từ ${fmt(w.start)})` : `Tiến độ thời gian: Ngày ${idx}/${w.days}${today > w.end ? ' · đã hết thời gian' : ''}`, tpct));
+  else dash.append(h('div', {class: 'hint'}, 'Chưa đặt thời gian cho kế hoạch này.'));
+  if (over.length) dash.append(h('div', {class: 'banner', onclick: () => { pFilter = 'overdue'; render(); }}, `⚠️ ${over.length} công việc quá hạn — chạm để xem và gia hạn`));
+  dash.append(h('div', {class: 'pacts'},
+    h('button', {class: 'primary', onclick: () => addPlanTasks(fid)}, '＋ Thêm công việc'),
+    h('button', {onclick: () => addTo(fid, 'folder')}, '📁 Thêm mục con'),
+    h('button', {onclick: () => editWindow(fid)}, '⏱ Chỉnh sửa thời gian'),
+    h('button', {class: 'ghost', onclick: () => menuFor(fid)}, '⋯')));
+  box.append(dash);
+
+  /* mục con */
+  const subs = Engine.planKids(S, fid);
+  if (subs.length) {
+    const card = h('div', {class: 'card'}, h('h2', {}, 'Các mục trong kế hoạch'));
+    subs.forEach(k => {
+      const kt = Engine.planTasks(S, k.id), kd = kt.filter(taskDone).length, kp = kt.length ? Math.round(kd / kt.length * 100) : 0;
+      const kw = Engine.window(S, k.id), kov = kt.filter(t => Engine.state(S, t, today) === 'overdue'), ko = kov.length, kmax = kov.reduce((m, t) => Math.max(m, DateUtil.diff(Engine.tEnd(t), today)), 0);
+      card.append(h('div', {class: 'item-card', 'data-id': k.id, onclick: () => { cur = k.id; render(); }},
+        h('div', {class: 'ic-t'}, h('span', {}, '🗓'), h('span', {class: 'nm'}, k.title), ko ? h('span', {class: 'badge over'}, `⚠️ QUÁ HẠN ${kmax} ngày · ${ko} việc`) : null,
+          h('button', {class: 'more', 'aria-label': 'Tùy chọn', onclick: e => { e.stopPropagation(); menuFor(k.id); }}, '⋯')),
+        h('div', {class: 'bar'}, h('i', {style: `width:${kp}%`})),
+        h('div', {class: 'bar-meta'}, h('span', {}, `${kd}/${kt.length} việc (${kp}%)`), h('span', {}, kw ? `${fmt(kw.start)} → ${fmt(kw.end)} · ${kw.days} ngày` : 'Chưa đặt thời gian'))));
+    });
+    box.append(card);
+  }
+
+  /* lịch ngày */
+  if (w) {
+    if (!pMonth) pMonth = (today >= w.start && today <= w.end ? today : w.start).slice(0, 7);
+    const [y, m] = pMonth.split('-').map(Number);
+    const off = (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7, dim = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    const shiftM = k => { pMonth = new Date(Date.UTC(y, m - 1 + k, 1)).toISOString().slice(0, 7); render(); };
+    const cal = h('div', {class: 'cal click'});
+    ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].forEach(x => cal.append(h('div', {class: 'dow'}, x)));
+    for (let i = 0; i < off; i++) cal.append(h('div'));
+    for (let d = 1; d <= dim; d++) {
+      const ds = `${pMonth}-${String(d).padStart(2, '0')}`, x = stt[ds];
+      let cls = 'd';
+      if (x === 'done') cls += ' done';
+      else if (x === 'failed') cls += g.days[ds] === 'frozen' ? ' frozen' : ' failed';
+      else if (x === 'pending') cls += ' pending';
+      else if (x === 'upcoming') cls += ' upcoming';
+      else if (x === 'none') cls += ' inwin';
+      if (ds === today) cls += ' today';
+      if (ds === pDay) cls += ' sel';
+      cal.append(h('div', {class: cls, title: fmt(ds), onclick: () => { pDay = pDay === ds ? null : ds; render(); }}, d));
+    }
+    box.append(h('div', {class: 'card'}, h('div', {class: 'cal-head'}, h('button', {onclick: () => shiftM(-1)}, '◀'), h('b', {}, `Lịch kế hoạch · ${m}/${y}`), h('button', {onclick: () => shiftM(1)}, '▶')), cal,
+      h('div', {class: 'legend'},
+        h('span', {}, h('i', {style: 'background:var(--done)'}), 'Hoàn thành'), h('span', {}, h('i', {style: 'background:var(--frozen)'}), 'Đóng băng'),
+        h('span', {}, h('i', {style: 'background:var(--fail)'}), 'Thất bại'), h('span', {}, h('i', {style: 'background:var(--accent-soft)'}), 'Có việc đến hạn'),
+        h('span', {}, h('i', {style: 'border:1px solid var(--accent-soft)'}), 'Trong kế hoạch'))));
+  }
+
+  /* bộ lọc + danh sách */
+  const F = {
+    all: () => true,
+    today: t => !!t.sched && t.sched.start <= today && today <= Engine.tEnd(t),
+    upcoming: t => !!t.sched && t.sched.start > today,
+    done: t => taskDone(t),
+    overdue: t => Engine.state(S, t, today) === 'overdue'
+  };
+  const chips = h('div', {class: 'chips', style: 'padding:0 0 10px'});
+  [['all', 'Tất cả'], ['today', 'Hôm nay'], ['upcoming', 'Sắp tới'], ['done', 'Hoàn thành'], ['overdue', 'Quá hạn']].forEach(([k, l]) =>
+    chips.append(h('span', {class: 'chip btn' + (pFilter === k ? ' active' : ''), onclick: () => { pFilter = k; render(); }}, `${l} (${tasks.filter(F[k]).length})`)));
+  if (pDay) chips.append(h('span', {class: 'chip btn active', onclick: () => { pDay = null; render(); }}, `📅 ${fmt(pDay)} ✕`));
+  let list = tasks.filter(F[pFilter]);
+  if (pDay) list = list.filter(t => t.sched && t.sched.start <= pDay && pDay <= Engine.tEnd(t));
+  const key = t => t.sched ? t.sched.start : '9999-99-99';
+  list.sort((a, b) => key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : a.order - b.order);
+  const card = h('div', {class: 'card list'}, h('h2', {style: 'padding:6px 8px 0'}, 'Danh sách công việc'), chips);
+  if (!list.length) card.append(h('div', {class: 'empty'}, tasks.length ? 'Không có công việc nào khớp bộ lọc.' : 'Chưa có công việc. Bấm “＋ Thêm công việc”.'));
+  const wc = {}; let lastK = null;
+  list.forEach(t => {
+    const k = key(t);
+    if (k !== lastK) { lastK = k; card.append(h('div', {class: 'dayhead'}, k === '9999-99-99' ? 'Chưa lên lịch' : `${dowOf(k)} ${fmt(k)}${k === today ? ' · Hôm nay' : ''}`)); }
+    card.append(ptaskRow(t, fid, wc));
+  });
+  card.append(h('div', {class: 'addbar', style: 'padding:6px 8px 8px'}, h('button', {class: 'primary', onclick: () => addPlanTasks(fid)}, '＋ Thêm công việc')));
+  box.append(card);
+}
+
+/* ---------- Streak view ---------- */
+function renderStreak() {
+  const box = $('#content'); box.replaceChildren();
+  const r = Streak.compute(S.required, S.log, today, S.doneOn);
+  const ice = h('div', {class: 'ice'});
+  for (let i = 0; i < MAX_FREEZE; i++) ice.append(h('span', {class: i < r.freezes ? '' : 'off'}, '🧊'));
+  box.append(h('div', {class: 'card'}, h('div', {class: 'streak-hero'},
+    h('div', {}, h('div', {class: 'big'}, '🔥 ' + r.current), h('div', {class: 'lbl'}, 'Chuỗi hiện tại')),
+    h('div', {}, h('div', {class: 'big'}, '🏆 ' + r.best), h('div', {class: 'lbl'}, 'Kỷ lục')),
+    h('div', {}, ice, h('div', {class: 'lbl'}, `Đóng băng ${r.freezes}/${MAX_FREEZE}`)))));
+  const ids = (S.required[today] || []).map(id => S.nodes[id]).filter(Boolean);
+  const dl = h('div', {class: 'card'}, h('h2', {}, '📅 Hôm nay · ' + fmt(today)));
+  if (!ids.length) dl.append(h('div', {class: 'empty'}, 'Hôm nay chưa có việc nào cần hoàn thành (hằng ngày hoặc đến hạn trong kế hoạch dài hạn).'));
+  ids.forEach(n => {
+    const dn = Engine.isDone(S, n.id, today);
+    const cb = h('input', {type: 'checkbox'}); cb.checked = dn; cb.addEventListener('change', () => toggleTask(n.id));
+    const kind = n.daily ? '🔁 Hằng ngày' : '🗓 Kế hoạch';
+    dl.append(h('div', {class: 'dailyitem' + (dn ? ' isdone' : '')}, cb, h('div', {}, h('div', {class: 't'}, n.title), h('div', {class: 'path'}, kind + ' · ' + (path(n.id).slice(0, -1).map(x => x.title).join(' / ') || 'Gốc')))));
+  });
+  if (ids.length) {
+    const left = ids.filter(n => !Engine.isDone(S, n.id, today)).length;
+    dl.append(h('div', {class: 'bar-meta'}, left ? `Còn ${left} việc để giữ chuỗi hôm nay` : '✅ Đã hoàn thành tất cả hôm nay!'));
+  }
+  box.append(dl);
+  /* calendar */
+  const [y, m] = calMonth.split('-').map(Number);
+  const first = new Date(Date.UTC(y, m - 1, 1)), off = (first.getUTCDay() + 6) % 7, dim = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const shiftM = k => { const d = new Date(Date.UTC(y, m - 1 + k, 1)); calMonth = d.toISOString().slice(0, 7); renderStreak(); };
+  const cal = h('div', {class: 'cal'});
+  ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].forEach(x => cal.append(h('div', {class: 'dow'}, x)));
+  for (let i = 0; i < off; i++) cal.append(h('div'));
+  for (let d = 1; d <= dim; d++) {
+    const ds = `${calMonth}-${String(d).padStart(2, '0')}`, st = r.days[ds];
+    cal.append(h('div', {class: 'd' + (st && st !== 'none' ? ' ' + st : '') + (ds === today ? ' today' : ''), title: ds}, d));
+  }
+  box.append(h('div', {class: 'card'},
+    h('div', {class: 'cal-head'}, h('button', {onclick: () => shiftM(-1)}, '◀'), h('b', {}, `Tháng ${m}/${y}`), h('button', {onclick: () => shiftM(1)}, '▶')),
+    cal,
+    h('div', {class: 'legend'},
+      h('span', {}, h('i', {style: 'background:var(--done)'}), 'Hoàn thành'),
+      h('span', {}, h('i', {style: 'background:var(--frozen)'}), 'Đóng băng'),
+      h('span', {}, h('i', {style: 'background:var(--fail)'}), 'Thất bại'),
+      h('span', {}, h('i', {style: 'border:2px dashed var(--warn)'}), 'Hôm nay (chưa xong)'))));
+}
+
+function render() {
+  if (cur && !S.nodes[cur]) cur = null;
+  applyTheme(); renderChips(); renderTree();
+  if (view === 'streak') renderStreak(); else renderNotes();
+}
+
+/* ---------- Drawer, toolbar, backup ---------- */
+function closeDrawer() { $('#sidebar').classList.remove('open'); $('#overlay').classList.remove('on'); }
+$('#btnMenu').onclick = () => { $('#sidebar').classList.add('open'); $('#overlay').classList.add('on'); };
+$('#overlay').onclick = closeDrawer;
+$('#btnTheme').onclick = () => { S.settings.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; save(); render(); };
+$('#btnMode').onclick = () => { S.settings.mode = !S.settings.mode; save(); render(); toast(S.settings.mode ? 'Đã bật chế độ hoàn thành' : 'Đã tắt chế độ hoàn thành (dữ liệu vẫn được giữ)'); };
+$('#btnAddRoot').onclick = () => { closeDrawer(); addTo(null, 'folder'); };
+$('#search').addEventListener('input', e => { query = e.target.value.trim(); view = 'notes'; renderChips(); renderNotes(); });
+$('#btnExport').onclick = () => {
+  const blob = new Blob([JSON.stringify(S, null, 2)], {type: 'application/json'});
+  const a = h('a', {href: URL.createObjectURL(blob), download: `notebook-backup-${today}.json`});
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('Đã xuất file sao lưu');
+};
+$('#btnImport').onclick = () => $('#fileIn').click();
+$('#fileIn').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const o = JSON.parse(await f.text());
+    if (!valid(o)) throw new Error('bad');
+    if (!(await confirmBox('Nhập dữ liệu sẽ thay thế toàn bộ dữ liệu hiện tại. Tiếp tục?', 'Nhập'))) return;
+    o.settings = o.settings || {mode: true, theme: null};
+    o.doneOn = o.doneOn || {}; S = o; cur = null; commit(); closeDrawer(); toast('Đã nhập dữ liệu');
+  } catch (err) { toast('File JSON không hợp lệ'); }
+});
+
+/* ---------- Day rollover ---------- */
+function checkDay() {
+  const t = DateUtil.today();
+  if (t !== today) { today = t; calMonth = t.slice(0, 7); commit(); toast('Sang ngày mới ' + t.split('-').reverse().join('/')); }
+}
+setInterval(checkDay, 15000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkDay(); });
+window.addEventListener('focus', checkDay);
+
+/* ---------- Init ---------- */
+S = load(); sync(); save(); render();
+window.__app = {Engine, get state() { return S; }, toggleTask, addNode, moveNode, removeNode, toggleDaily, compute: () => Streak.compute(S.required, S.log, today, S.doneOn)};
+})();
+</script>
+</body>
+</html>
